@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(-45deg, #ff7eb3, #ff758c, #42a5f5, #26c6da);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      color: white;
+      text-align: center;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 40px 60px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      max-width: 400px;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.1em;
+      margin-top: 0;
+      opacity: 0.9;
+    }
+
+    button {
+      margin-top: 20px;
+      background: #ffffff;
+      border: none;
+      color: #333;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #42a5f5;
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(66, 165, 245, 0.4);
+    }
+</style>
+<body>
+        <div class="container">
+            <h1>Legitimate Voter Checker</h1>
+            <p>Click the button below to find out if you're a legitimate Voter!</p>
+            <button onclick="checkLegit()">Check if you're a Legitimate</button>
+        </div>
+    <script>
+        function checkLegit() {
+            let age = prompt("Enter your age: ", Number());
+            let citizen = prompt("Are you a Filipino citizen? Yes or No?");
+
+            if (citizen == 'yes') {
+                citizen = true;
+            } else {
+                citizen = false;
+            }
+            if (age >= 18 && citizen == true) {
+                alert("You are eligible to vote!");
+            } else {
+                alert("You are not eligible to vote!")
+            }
+        }
+    </script>
+</body>
+</html>

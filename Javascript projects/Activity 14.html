@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Program</title>
+</head>
+<body>
+    <script>
+        const MAX_ATTEMPTS = 3;
+        let isAuthenticated = false;
+
+        const CORRECT_PASSWORD = prompt("Set your password: ");
+        
+        for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            const password = prompt(`Enter the password. Attempts left: ${MAX_ATTEMPTS - i}`);
+
+            if (password === null) {
+                alert("Login canceled.");
+                break;
+            }
+
+            if (password === CORRECT_PASSWORD) {
+                isAuthenticated = true;
+                alert("Login successful! Welcome.");
+                break;
+            } else if (i < MAX_ATTEMPTS - 1) {
+                alert(`Incorrect password. You have ${MAX_ATTEMPTS - 1 - i} attempts remaining.`);
+            }
+        }
+
+        if (!isAuthenticated) {
+            alert("❌ Error: Maximum login attempts reached. Account locked.");
+        }
+    </script>
+</body>
+</html>

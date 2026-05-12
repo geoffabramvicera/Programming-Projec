@@ -1,0 +1,23 @@
+<html>
+    <body style="font-size: 20px ;background-color: orange; text-align: center; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">
+        <marquee><h1>JavaScript Variables</h1>
+
+        <div style="border: 50px;">In this example, x, y & z are variables</div></marquee>
+        <div id="demo" style="border: 50px;"></div>
+
+        <script>
+            let x = Number(prompt("Enter x number: "));
+            let y = Number(prompt("Enter y number: "));
+            let z = x + y;
+            let a = x - y;
+            let b = x * y;
+            let c = x / y;
+
+            document.getElementById("demo").innerHTML="The value of z is " + z + "<br>" +
+                                                        "The value of a is " + a + "<br>" +
+                                                        "The value of b is " + b + "<br>" +
+                                                        "The value of c is " + c;
+
+        </script>
+    </body>
+</html>

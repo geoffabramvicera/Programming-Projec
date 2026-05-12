@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home | Geoff Abram Vicera</title>
+        <link rel="icon" type="image/png" href="Personal Website photo.png">
+        <style>
+            body{
+                margin-left: 0px;
+                margin-right: 0px;
+            }
+            @property --angle{
+                syntax: "<angle>";
+                initial-value: 0deg;
+                inherits: false;
+            }
+            @keyframes spin{ 
+                from{
+                    --angle: 0deg;
+                }
+                to{
+                    --angle: 360deg;
+                }
+            }
+            #div1{
+                text-align: center; 
+                background-color: hsl(193, 86%, 17%);
+                padding: 10px;;
+            }
+            #div1::after, #div1::before{
+                background-image: conic-gradient(from var(--angle)), hsl(272, 61%, 34%);
+                animation: 3s spin linear infinite;
+            }
+            #div1::before{
+                filter: blur(1.5rem);
+                opacity: 0.5;
+            }
+            .hyperlinks{
+                background-color: rgb(6, 66, 82); 
+                color:hsl(0, 0%, 70%); 
+                font-size: 25px; 
+                border: none; 
+                text-decoration: none;
+                font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+                margin-inline: 20px;
+                transition: font-size 0.1s ease-in-out;
+            }
+            a:hover{
+                color:hsl(0, 0%, 100%);
+                font-size: 30px;
+                transition: font-size 0.1s ease-in-out;
+            }
+            #div1 a#hyperlink2{
+                color: black;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+                <div id="div1">
+                    <a href="Index.html" class="hyperlinks" id="hyperlink1">Menu</a>
+                    <a href="Home.html" class="hyperlinks" id="hyperlink2">Home</a>
+                    <a href="My Resume.html" class="hyperlinks" id="hyperlink3">My Resume</a>
+                    <a href="Myself.html" class="hyperlinks" id="hyperlink4">Myself</a>
+                    <a href="My Family.html" class="hyperlinks" id="hyperlink5">My Family</a> 
+                    <a href="My Favorite.html" class="hyperlinks" id="hyperlink6">My Favorite</a>  
+                </div>
+        </header>
+
+
+        <h2 style="text-align: left;">Personal Information</h2>
+        <h3 style="text-align: left;">Gender: Male</h3>
+        <h3 style="text-align: left;">Religion: Christian</h3>
+        <h3 style="text-align: left;">Address: Dasmarinas, Cavite</h3>
+        
+
+    </body>
+</html>
+<h3>Favorite Series</h3>
+<div class="gallerya">
+    <img src="aot.jpg" style="height: 180px;">
+    <div class="description">Attack on Titan</div>
+</div>
+<div class="galleryc">
+    <img src="Kaiju.jpg" style="height: 180px;">
+    <div class="description">Kaiju No.8</div>
+</div>
+<div class="galleryc">
+    <img src="kimetsu no yaiba.jpg" style="height: 180px;">
+    <div class="description">Demon Slayer</div>
+
+<h3>Favorite Colors</h3>
+<div class="galleryc">
+    <img src="Teal ocean.png">
+    <div class="description">Army Green</div>
+</div>
+<div class="galleryc">
+    <img src="army green.png">
+    <div class="description">Teal</div>
+</div>
+
+<h3>Favorite Foods</h3>
+<div class="gallery">
+    <img src="burger.jpg">
+    <div class="description">Burger</div>
+</div>
+<div class="gallery">
+    <img src="pizza.jpg">
+    <div class="description">Pizza</div>

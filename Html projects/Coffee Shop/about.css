@@ -1,0 +1,245 @@
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(0, 98, 73, 0.95);
+  height: 90px;
+  padding: 0 18px;
+  margin-bottom: 20px;
+}
+.menu .logo {
+  display: flex;
+  align-items: center;
+}
+.menu .logo img {
+  height: 75px;
+  width: auto;
+  margin-right: 20px;
+}
+.menu ul,
+.menu li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.menu ul {
+  width: 100%;
+  text-align: right;
+}
+.menu li {
+  display: inline-block;
+  position: relative;
+}
+.menu a {
+  display: block;
+  padding: 0 14px;
+  line-height: 71px;
+  color: white;
+  font-size: 16px;
+  text-decoration: none;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  color: #1e3932;
+  background-color: #f4f1ec;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+.intro.two-column {
+  background: #f4f1ec;
+  height: auto;
+  padding: 80px 20px;
+}
+.intro.two-column .first-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+  gap: 40px;
+}
+.intro.two-column .first-container .text {
+  flex: 1;
+}
+.intro.two-column .first-container .text h1 {
+  font-size: 40px;
+  color: #1e3932;
+  margin-bottom: 20px;
+}
+.intro.two-column .first-container .text p {
+  font-size: 18px;
+  color: #333;
+}
+.intro.two-column .first-container .image {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+}
+.intro.two-column .first-container .image img {
+  width: 100%;
+  margin-left: 120px;
+  margin-top: -20px;
+  max-width: 350px;
+  box-shadow: none;
+  background: none;
+}
+.section {
+  padding: 80px 20px;
+  background-color: #fefefe;
+}
+.first-container,
+.second-container,
+.fourth-container,
+.fifth-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+.text,
+.image {
+  flex: 1;
+}
+.image img {
+  width: 100%;
+  margin-left: 20px;
+}
+#story1 {
+  margin-right: 60px;
+}
+.section h2 {
+  color: #00754a;
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+.section p {
+  font-size: 18px;
+  color: #444;
+}
+.story {
+  background-color: #f4f1ec;
+}
+.come {
+  text-align: center;
+  background-color: #e2dcd5;
+}
+.come h2 {
+  margin-bottom: 10px;
+}
+.come p {
+  font-size: 18px;
+}
+.come .btn {
+  margin-top: 20px;
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #1e3932;
+  color: #fff;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+.come .btn:hover {
+  background-color: #142922;
+}
+footer {
+  background-color: #1e3932;
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+.footer-content h3 {
+  margin-left: 10px;
+  font-size: 24px;
+  margin-bottom: 10px;
+  letter-spacing: 20px;
+}
+.footer-content p {
+  margin: 8px 0;
+  font-size: 15px;
+  color: #d6d6d6;
+}
+.mission .text h2 {
+  color: #00754a;
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+.mission .text p {
+  font-size: 18px;
+  color: #444;
+}
+.sixth-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+.corevaluessection {
+  background-color: #f4f1ec;
+  padding: 60px 20px;
+}
+
+.seventhcontainer {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  text-align: center;
+}
+
+.valuesheading {
+  font-size: 28px;
+  color: #1e3932;
+  margin-bottom: 20px;
+}
+
+.bannerimage {
+  width: 100%;
+  max-width: 1000px;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.corevaluesright {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.value {
+  background-color: #ffffff;
+  border: 2px solid #d0d0d0;
+  border-radius: 16px;
+  padding: 30px 25px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.value h4 {
+  font-size: 24px;
+  color: #00754a;
+  margin-bottom: 12px;
+}
+
+.value p {
+  font-size: 16px;
+  color: #444;
+  line-height: 1.8;
+}
