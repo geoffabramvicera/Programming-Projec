@@ -1,0 +1,70 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MethodandArrayExample",
+            "request": "launch",
+            "mainClass": "MethodandArrayExample",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "StudentGradesManager",
+            "request": "launch",
+            "mainClass": "StudentGradesManager",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "MyMidtermLabExam",
+            "request": "launch",
+            "mainClass": "MyMidtermLabExam",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "LabActivity1EmployeeInformationSystem",
+            "request": "launch",
+            "mainClass": "LabActivity1EmployeeInformationSystem",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "LabActivity2EmployeeInformationSystemPart2",
+            "request": "launch",
+            "mainClass": "LabActivity2EmployeeInformationSystemPart2",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "LabActivity3ConditionalStatement",
+            "request": "launch",
+            "mainClass": "LabActivity3ConditionalStatement",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "StudentGradeManagementSystem",
+            "request": "launch",
+            "mainClass": "StudentGradeManagementSystem",
+            "projectName": "Programming-Projects_b85b0864"
+        },
+        {
+            "type": "java",
+            "name": "kaycarl",
+            "request": "launch",
+            "mainClass": "kaycarl",
+            "projectName": "Programming-Projects_b85b0864"
+        }
+    ]
+}

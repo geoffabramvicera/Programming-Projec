@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Pizza Order</title>
+</head>
+<body>
+    <h2>🍕 Pizza Order System</h2>
+
+    <label>Choose Size:</label>
+    <select id="size">
+        <option value="10">Small ($10)</option>
+        <option value="12">Medium ($12)</option>
+        <option value="15">Large ($15)</option>
+    </select>
+
+    <br><br>
+
+    <label>Add Toppings ($1.50 each):</label><br>
+    <input type="checkbox" class="topping" value="1.5"> Pepperoni<br>
+    <input type="checkbox" class="topping" value="1.5"> Mushrooms<br>
+    <input type="checkbox" class="topping" value="1.5"> Extra Cheese<br>
+
+    <br>
+
+    <button onclick="calculatePizza()">Calculate Total</button>
+
+    <hr>
+    <h3>Total Price: $<span id="totalDisplay">0.00</span></h3>
+
+    <script>
+        function calculatePizza() {
+    // 1. Get the base price from the dropdown (Size)
+    // We use Number() to make sure it's a number, not text
+    let sizePrice = Number(document.getElementById("size").value);
+
+    // 2. Find all topping checkboxes
+    let toppings = document.getElementsByClassName("topping");
+    let toppingsTotal = 0;
+
+    // 3. Loop through toppings to see which ones are checked
+    for (let i = 0; i < toppings.length; i++) {
+        if (toppings[i].checked) {
+            // Add the value of the topping (1.5) to our total
+            toppingsTotal = toppingsTotal + Number(toppings[i].value);
+        }
+    }
+
+    // 4. Calculate the Final Total
+    let finalPrice = sizePrice + toppingsTotal;
+
+    // 5. Update the webpage to show the result
+    // .toFixed(2) ensures we see two decimal places (like $13.50)
+    document.getElementById("totalDisplay").innerText = finalPrice.toFixed(2);
+}
+    </script>
+</body>
+</html>
