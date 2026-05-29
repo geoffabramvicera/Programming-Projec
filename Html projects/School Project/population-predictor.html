@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Population Growth Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0f1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0f4ff;
+      --muted: #7a8aaa;
+      --accent: #4f9eff;
+      --accent2: #7b5ea7;
+      --decay: #e06c5a;
+      --green: #3ecf8e;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 4rem;
+    }
+
+    /* ── Background grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,158,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,158,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .formula-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      background: rgba(79,158,255,0.1);
+      border: 1px solid rgba(79,158,255,0.2);
+      border-radius: 20px;
+      padding: 4px 14px;
+      margin-bottom: 1rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #f0f4ff 30%, #4f9eff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 400;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .card:nth-child(2) { animation-delay: 0.08s; }
+    .card:nth-child(3) { animation-delay: 0.16s; }
+
+    /* ── Form ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,158,255,0.12);
+    }
+
+    .field input::-webkit-inner-spin-button,
+    .field input::-webkit-outer-spin-button { opacity: 0.4; }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #fff;
+      background: linear-gradient(135deg, #4f9eff, #7b5ea7);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+
+    /* ── Error ── */
+    .error {
+      color: var(--decay);
+      font-size: 13px;
+      margin-bottom: 10px;
+      min-height: 18px;
+    }
+
+    /* ── Metrics ── */
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.5s ease both;
+      animation-delay: 0.1s;
+    }
+
+    .metric {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .metric .m-label {
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .metric .m-value {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .metric .m-value.positive { color: var(--green); }
+    .metric .m-value.negative { color: var(--decay); }
+
+    /* ── Chart ── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem 1rem;
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.5s ease both;
+      animation-delay: 0.18s;
+    }
+
+    .chart-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 240px;
+    }
+
+    /* ── Table ── */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+      animation-delay: 0.26s;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .row-count {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: rgba(79,158,255,0.1);
+      border: 1px solid rgba(79,158,255,0.2);
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: fixed;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 16px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr.final-row td { color: var(--accent); }
+    tr.final-row td:first-child { font-weight: 600; }
+
+    .bar-bg {
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      height: 5px;
+      min-width: 60px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 5px;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .bar-grow { background: linear-gradient(90deg, #4f9eff, #3ecf8e); }
+    .bar-decay { background: linear-gradient(90deg, #e06c5a, #e0a45a); }
+
+    .delta-pos { color: var(--green); }
+    .delta-neg { color: var(--decay); }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      animation: fadeUp 0.5s ease 0.4s both;
+    }
+
+    footer span {
+      font-family: var(--mono);
+      color: var(--accent);
+    }
+
+    /* ── Hidden ── */
+    .hidden { display: none; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .metric-row { grid-template-columns: 1fr; }
+      th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <header>
+      <div class="formula-badge">P(t) = P₀ · eʳᵗ</div>
+      <h1>Population Growth Predictor</h1>
+      <p>Exponential growth &amp; decay modelling, year by year</p>
+    </header>
+
+    <!-- Input form -->
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label for="p0">Initial Population (P₀)</label>
+          <input type="number" id="p0" value="1000000" min="1" step="1" placeholder="e.g. 1000000" />
+        </div>
+        <div class="field">
+          <label for="rate">Growth Rate (% per year)</label>
+          <input type="number" id="rate" value="2.5" step="0.1" placeholder="e.g. 2.5 or -1.5" />
+        </div>
+        <div class="field">
+          <label for="years">Time in Years</label>
+          <input type="number" id="years" value="20" min="1" max="200" step="1" placeholder="e.g. 20" />
+        </div>
+      </div>
+      <div class="error" id="error"></div>
+      <button class="btn" onclick="calculate()">&#9654;&#xFE0E; Calculate</button>
+    </div>
+
+    <!-- Results section -->
+    <div id="results" class="hidden">
+
+      <!-- Metric cards -->
+      <div class="metric-row">
+        <div class="metric">
+          <div class="m-label">Initial Population</div>
+          <div class="m-value" id="m-p0">—</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Final Population</div>
+          <div class="m-value" id="m-pf">—</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Net Change</div>
+          <div class="m-value" id="m-change">—</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-card">
+        <div class="chart-title">Population over time</div>
+        <div class="chart-wrap">
+          <canvas id="pgChart" role="img" aria-label="Line chart showing population change over the selected number of years.">Population chart</canvas>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Year-by-Year Breakdown</div>
+          <div class="row-count" id="row-count">0 rows</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px">Year</th>
+                <th>Population</th>
+                <th>± from prev.</th>
+                <th>Total growth</th>
+                <th style="width:100px">Scale</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end #results -->
+
+    <footer>
+      Formula: <span>P(t) = P₀ · e^(r·t)</span> &nbsp;·&nbsp; r = annual rate as decimal
+    </footer>
+
+  </div><!-- end .wrapper -->
+
+  <script>
+    let pgChart = null;
+
+    function fmt(n) {
+      return Math.round(n).toLocaleString();
+    }
+
+    function fmtPct(n) {
+      return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+    }
+
+    function calculate() {
+      const errEl = document.getElementById('error');
+      errEl.textContent = '';
+
+      const p0    = parseFloat(document.getElementById('p0').value);
+      const rPct  = parseFloat(document.getElementById('rate').value);
+      const years = parseInt(document.getElementById('years').value);
+
+      if (isNaN(p0) || p0 <= 0) {
+        errEl.textContent = 'Initial population must be a positive number.';
+        return;
+      }
+      if (isNaN(rPct)) {
+        errEl.textContent = 'Please enter a valid growth rate.';
+        return;
+      }
+      if (isNaN(years) || years < 1 || years > 200) {
+        errEl.textContent = 'Time must be between 1 and 200 years.';
+        return;
+      }
+
+      const r = rPct / 100;
+      const isDecay = r < 0;
+
+      // Build data rows
+      const rows = [];
+      for (let t = 0; t <= years; t++) {
+        rows.push({ t, pop: p0 * Math.exp(r * t) });
+      }
+
+      const finalPop = rows[rows.length - 1].pop;
+      const maxPop   = Math.max(...rows.map(d => d.pop));
+      const minPop   = Math.min(...rows.map(d => d.pop));
+
+      // Metrics
+      document.getElementById('m-p0').textContent = fmt(p0);
+      document.getElementById('m-pf').textContent = fmt(finalPop);
+
+      const changeEl = document.getElementById('m-change');
+      const netChange = finalPop - p0;
+      changeEl.textContent = (netChange >= 0 ? '+' : '') + fmt(netChange);
+      changeEl.className = 'm-value ' + (netChange >= 0 ? 'positive' : 'negative');
+
+      // Table
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      document.getElementById('row-count').textContent = rows.length + ' rows';
+
+      rows.forEach((row, i) => {
+        const prev       = i > 0 ? rows[i - 1].pop : null;
+        const delta      = prev !== null ? row.pop - prev : null;
+        const totalPct   = ((row.pop - p0) / p0 * 100);
+        const scaleRange = maxPop - (isDecay ? minPop : 0);
+        const barPct     = scaleRange > 0
+          ? Math.round(((row.pop - (isDecay ? minPop : 0)) / scaleRange) * 100)
+          : 100;
+
+        const tr = document.createElement('tr');
+        if (i === rows.length - 1) tr.classList.add('final-row');
+
+        const deltaHtml = delta !== null
+          ? `<td class="${delta >= 0 ? 'delta-pos' : 'delta-neg'}">${(delta >= 0 ? '+' : '') + fmt(delta)}</td>`
+          : `<td>—</td>`;
+
+        tr.innerHTML = `
+          <td>${row.t}</td>
+          <td>${fmt(row.pop)}</td>
+          ${deltaHtml}
+          <td class="${totalPct >= 0 ? 'delta-pos' : 'delta-neg'}">${fmtPct(totalPct)}</td>
+          <td>
+            <div class="bar-bg">
+              <div class="bar-fill ${isDecay ? 'bar-decay' : 'bar-grow'}" style="width:${barPct}%"></div>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Chart
+      const labels   = rows.map(d => 'Y' + d.t);
+      const data     = rows.map(d => Math.round(d.pop));
+      const lineColor = isDecay ? '#e06c5a' : '#4f9eff';
+      const fillColor = isDecay ? 'rgba(224,108,90,0.1)' : 'rgba(79,158,255,0.1)';
+
+      if (pgChart) { pgChart.destroy(); }
+
+      pgChart = new Chart(document.getElementById('pgChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Population',
+            data,
+            borderColor: lineColor,
+            backgroundColor: fillColor,
+            borderWidth: 2,
+            pointRadius: years <= 40 ? 3 : 0,
+            pointBackgroundColor: lineColor,
+            tension: 0.35,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1a2235',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              titleColor: '#7a8aaa',
+              bodyColor: '#f0f4ff',
+              callbacks: {
+                title: ctx => 'Year ' + ctx[0].dataIndex,
+                label: ctx => ' Population: ' + ctx.parsed.y.toLocaleString()
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#7a8aaa',
+                font: { family: "'DM Mono', monospace", size: 11 },
+                maxTicksLimit: 12
+              },
+              grid: { color: 'rgba(255,255,255,0.04)' }
+            },
+            y: {
+              ticks: {
+                color: '#7a8aaa',
+                font: { family: "'DM Mono', monospace", size: 11 },
+                callback: v =>
+                  v >= 1e9 ? (v/1e9).toFixed(1) + 'B' :
+                  v >= 1e6 ? (v/1e6).toFixed(1) + 'M' :
+                  v >= 1e3 ? (v/1e3).toFixed(0) + 'K' : v
+              },
+              grid: { color: 'rgba(255,255,255,0.04)' }
+            }
+          }
+        }
+      });
+
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Run on load with defaults
+    calculate();
+  </script>
+</body>
+</html>
