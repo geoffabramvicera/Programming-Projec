@@ -22,7 +22,7 @@ A comprehensive collection of my Python certification projects, algorithmic chal
 | **Media Catalogue** | Inheritance | Organizes media collections with polymorphism and error handling. |
 | **RPG Character Generator** | Input Validation | Creates balanced characters with stat checks and UI visualization. |
 | **Salary Tracker** | Property Decorators | Manages employee data with encapsulated logic and validation. |
-
+| **Shortest Path Implementation** | Greedy Appraoch | This program calculates the shortest path through a network of nodes represented by an **Adjacency Matrix**. |
 ---
 
 ## Budget App
@@ -141,3 +141,20 @@ An advanced employee management system focusing on data integrity.
 * **Property Decorators:** Uses `@property` and `@setter` to control access to employee attributes.
 * **Validation Logic:** Implements logic to prevent invalid state changes (e.g., banning level downgrades or salary cuts).
 * **Automated Updates:** Automatically triggers salary recalculations when the employee's level changes.
+
+---
+
+## Shortest Path Finder
+An efficient pathfinding tool designed to navigate graph-based networks, calculating the most optimal route from a starting node to a target destination (or all nodes) within an adjacency matrix.
+
+**Dijkstra’s Greedy Strategy:**
+* **Selection Logic:** Employs a greedy selection process to consistently identify and "lock in" the closest unvisited node, ensuring the algorithm builds the shortest path incrementally.
+* **Greedy Choice Property:** Demonstrates how making the locally optimal choice at each step leads to a globally optimal solution for the graph.
+
+**Graph Traversal & Adjacency Mapping:**
+* **Matrix Representation:** Utilizes a 2D adjacency matrix to represent graph nodes and edge weights, allowing for $O(1)$ lookup times between connected points.
+* **Visitation Tracking:** Implements a boolean `visited` array to prevent redundant cycles and ensure each node is processed exactly once after being "locked."
+
+**Dynamic Path Relaxation:**
+* **Shortcut Optimization:** Executes real-time comparisons (relaxation) to determine if a path through a current node offers a lower cost than previously recorded paths.
+* **Path Reconstruction:** Maintains a dynamic list of routes that updates iteratively whenever a more efficient sequence of nodes is identified during the update phase.
