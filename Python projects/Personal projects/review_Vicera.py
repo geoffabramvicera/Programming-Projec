@@ -1,44 +1,16 @@
-def get_inputs():
-    formula_to_compute = int(input("Select an option (1-2): "))
-    major_radius = float(input("Enter the major radius (R): "))
-    minor_radius = float(input("Enter the minor radius (r): "))
-    return formula_to_compute, major_radius, minor_radius
+def fibonacci(n: int):
+    sequence = [0, 1]
 
-def validate_inputs(major_radius, minor_radius):
-    if minor_radius > major_radius:
-        return False, "Minor radius (r) must be less than Major radius (R)."
-    if minor_radius == 0 or major_radius == 0:
-        return False, "Both radii must be greater than zero."
-    return True, ""
+    if n < 0:
+        raise ValueError("Value must be non-negative integer")
 
-def compute_surface_area(major_radius, minor_radius):
-    return (2 * 3.14 * major_radius) * (2 * 3.14 * minor_radius)
+    if n < 2:
+        return sequence[n]
 
-def compute_volume(major_radius, minor_radius):
-    return (2 * 3.14 * major_radius) * (3.14 * minor_radius ** 2)
+    for i in range(2, n + 1):
+        next_number = sequence[i-1] + sequence[i-2]
+        sequence.append(next_number)
 
-def torus_calculator():
-    print("Torus Calculator")
-    print("1. Compute Surface Area")
-    print("2. Compute Volume")
+    return sequence[n]
 
-    formula_to_compute, major_radius, minor_radius = get_inputs()
-    valid, error_message = validate_inputs(major_radius, minor_radius)
-
-    if not valid:
-        print(error_message)
-        return torus_calculator()
-
-    if formula_to_compute == 1:
-        print(f"Surface Area of the torus is: {compute_surface_area(major_radius, minor_radius)}")
-    elif formula_to_compute == 2:
-        print(f"Volume of the Torus is: {compute_volume(major_radius, minor_radius)}")
-
-    prompt1 = input("Do you want to compute another set? (yes/no): ")
-
-    if prompt1.lower() == "yes":
-        return torus_calculator()
-    else:
-        print("Exiting the program. Goodbye!")
-
-torus_calculator()
+fibonacci(10)
