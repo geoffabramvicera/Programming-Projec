@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phishing URL Checker</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f3f6fb; color: #1d2939; margin: 0; padding: 40px 16px; }
+    main { max-width: 620px; margin: auto; background: white; padding: 28px; border-radius: 14px; box-shadow: 0 4px 18px #172b4d12; }
+    h1 { margin: 0 0 8px; color: #174ea6; }
+    p { color: #667085; line-height: 1.5; }
+    form { display: flex; gap: 8px; margin-top: 24px; }
+    input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-size: 15px; }
+    button { padding: 12px 18px; border: 0; border-radius: 7px; background: #1769d2; color: white; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #status, #result { margin-top: 18px; }
+    #result { padding: 16px; border-radius: 8px; background: #f3f6fb; overflow-wrap: anywhere; }
+    #result.safe { background: #e9f8ef; color: #166534; }
+    #result.danger { background: #fff0f0; color: #b42318; }
+    #result.review { background: #fff7e5; color: #8a5a00; }
+    .score { font-size: 24px; font-weight: bold; }
+    small { display: block; margin-top: 22px; color: #667085; }
+    @media (max-width: 500px) { form { flex-direction: column; } button { width: 100%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Phishing URL Checker</h1>
+    <p>Enter a website address to check whether its URL has patterns commonly found in phishing links.</p>
+
+    <form id="urlForm">
+      <input id="urlInput" type="text" placeholder="https://example.com" required>
+      <button id="checkButton" type="submit">Check URL</button>
+    </form>
+
+    <p id="status">Checking the detector...</p>
+    <div id="result" hidden></div>
+    <small>This tool checks URL patterns only. A low score does not guarantee that a website is safe.</small>
+  </main>
+
+  <script>
+    const form = document.getElementById("urlForm");
+    const input = document.getElementById("urlInput");
+    const button = document.getElementById("checkButton");
+    const statusText = document.getElementById("status");
+    const result = document.getElementById("result");
+
+    async function checkServer() {
+      try {
+        const response = await fetch("/health");
+        const data = await response.json();
+        statusText.textContent = data.model_loaded ? "Detector is ready." : data.error;
+      } catch (error) {
+        statusText.textContent = "Cannot connect. Start app.py first.";
+      }
+    }
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const url = input.value.trim();
+      result.hidden = true;
+      button.disabled = true;
+      button.textContent = "Checking...";
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+
+        result.hidden = false;
+        if (data.is_phishing) {
+          result.className = "danger";
+        } else if (data.review_required) {
+          result.className = "review";
+        } else {
+          result.className = "safe";
+        }
+        const title = document.createElement("strong");
+        title.textContent = data.result_label;
+
+        const checkedUrl = document.createElement("p");
+        checkedUrl.textContent = "URL: " + data.url;
+
+        const score = document.createElement("p");
+        score.className = "score";
+        score.textContent = "Phishing score: " + data.phishing_score + "%";
+
+        result.replaceChildren(title, checkedUrl, score);
+      } catch (error) {
+        result.hidden = false;
+        result.className = "danger";
+        result.textContent = error.message || "Something went wrong.";
+      }
+
+      button.disabled = false;
+      button.textContent = "Check URL";
+    });
+
+    checkServer();
+  </script>
+</body>
+</html>

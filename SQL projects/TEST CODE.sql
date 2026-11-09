@@ -1,50 +1,79 @@
--- Create the Books table for SQL Server
-CREATE TABLE Books (
-    BookID INT IDENTITY(1,1) PRIMARY KEY,
-    Title VARCHAR(255) NOT NULL,
-    Authors VARCHAR(255) NOT NULL,
-    ISBN VARCHAR(20) UNIQUE NOT NULL,
-    Genre VARCHAR(100),
-    Publisher VARCHAR(255),
-    PublicationYear INT,
-    Language VARCHAR(50),
-    Description TEXT  -- Note: In SQL Server, TEXT is deprecated; consider using VARCHAR(MAX) for better practice
-);
+#!/bin/bash
 
--- 1. INSERT OPERATION: Add sample records
-INSERT INTO Books (Title, Authors, ISBN, Genre, Publisher, PublicationYear, Language, Description) VALUES
-('Where the Sidewalk Ends', 'Shel Silverstein', '978-0060572341', 'Poetry', 'HarperCollins', 1974, 'English', 'A collection of classic poems and drawings for children and adults.'),
-('Dune', 'Frank Herbert', '978-0441172719', 'Science Fiction', 'Chilton Books', 1965, 'English', 'A monumental science fiction epic set on the desert planet Arrakis.'),
-('The Secret History', 'Donna Tartt', '978-0679733372', 'Mystery/Fiction', 'Knopf', 1992, 'English', 'A tale of a group of classics students at a Vermont college who become involved in a murder.'),
-('Becoming', 'Michelle Obama', '978-1524763138', 'Biography/Memoir', 'Crown Publishing Group', 2018, 'English', 'An intimate and powerful memoir by the former First Lady of the United States.');
+if [[ $1 == "test" ]]
+then
+  PSQL="psql --username=postgres --dbname=worldcup_test -t --no-align -c"
+else
+  PSQL="psql --username=freecodecamp --dbname=worldcup -t --no-align -c"
+fi
 
--- 2. READ OPERATION: Retrieval Queries
+# Do not change code above this line. Use the PSQL variable above to query your database.
 
--- 2.1. List ALL Available Books
-SELECT * FROM Books;
+# Clear out existing data before running to prevent duplicate primary key errors on rerun
+echo $($PSQL "TRUNCATE games, teams")
 
--- 2.2. List Books by Specific Author
-SELECT BookID, Title, PublicationYear FROM Books WHERE Authors = 'Frank Herbert';
+# Read the CSV file line by line, splitting by comma into specific variables
+cat games.csv | while IFS="," read YEAR ROUND WINNER OPPONENT WINNER_GOALS OPPONENT_GOALS
+do
+  # STRATEGY A: Skip the header row by checking if the first column equals the literal text label
+  if [[ $YEAR != "year" ]]
+  then
 
--- 2.3. Find a Book by its ISBN
-SELECT Title, Genre, Publisher FROM Books WHERE ISBN = '978-0679733372';
+    # ==========================================
+    # 1. HANDLE THE WINNING TEAM
+    # ==========================================
 
--- 2.4. List Books in a specific Genre
-SELECT Title, Authors, PublicationYear FROM Books WHERE Genre LIKE '%Poetry%';
+    # Check if the winning team already exists in the teams table
+    WINNER_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$WINNER'")
 
--- 3. UPDATE OPERATION: Modify Records
--- Example: Update the Publisher and Genre for the book with BookID 4
-UPDATE Books 
-SET Publisher = 'Penguin Random House', 
-    Genre = 'Non-Fiction/Memoir' 
-WHERE BookID = 4;
+    # If the ID comes back empty (-z checks for an empty string), it means the team is unique
+    if [[ -z $WINNER_ID ]]
+    then
+      # Insert the unique team into the database
+      INSERT_WINNER_RESULT=$($PSQL "INSERT INTO teams(name) VALUES('$WINNER')")
 
--- Verify the update
-SELECT * FROM Books WHERE BookID = 4;
+      # Print status message to terminal
+      if [[ $INSERT_WINNER_RESULT == "INSERT 0 1" ]]
+      then
+        echo "Inserted into teams: $WINNER"
+      fi
 
--- 4. DELETE OPERATION: Remove Records
--- Example: Remove the book with BookID 1
-DELETE FROM Books WHERE BookID = 1;
+      # Retrieve the newly generated ID for later use in the games table
+      WINNER_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$WINNER'")
+    fi
 
--- Verify the deletion
-SELECT * FROM Books;
+    # ==========================================
+    # 2. HANDLE THE OPPONENT TEAM
+    # ==========================================
+
+    # Check if the opponent team already exists in the teams table
+    OPPONENT_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$OPPONENT'")
+
+    # If the ID comes back empty, insert the team
+    if [[ -z $OPPONENT_ID ]]
+    then
+      INSERT_OPPONENT_RESULT=$($PSQL "INSERT INTO teams(name) VALUES('$OPPONENT')")
+
+      if [[ $INSERT_OPPONENT_RESULT == "INSERT 0 1" ]]
+      then
+        echo "Inserted into teams: $OPPONENT"
+      fi
+
+      # Retrieve the newly generated ID
+      OPPONENT_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$OPPONENT'")
+    fi
+
+    # ==========================================
+    # 3. INSERT THE GAME LOG
+    # ==========================================
+
+    # Now that we guaranteed both IDs exist, link them together in the games table
+    INSERT_GAME_RESULT=$($PSQL "INSERT INTO games(year, round, winner_id, opponent_id, winner_goals, opponent_goals) VALUES($YEAR, '$ROUND', $WINNER_ID, $OPPONENT_ID, $WINNER_GOALS, $OPPONENT_GOALS)")
+
+    if [[ $INSERT_GAME_RESULT == "INSERT 0 1" ]]
+    then
+      echo "Inserted into games: $YEAR - $ROUND"
+    fi
+
+  fi
+done
