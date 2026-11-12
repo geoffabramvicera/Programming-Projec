@@ -1,22 +1,18 @@
-
 from pathlib import Path
 from urllib.parse import urlsplit
 import ipaddress
 import joblib
 from flask import Flask, jsonify, request, send_from_directory
 
-# File locations
 FOLDER = Path(__file__).resolve().parent
 MODEL_FILE = FOLDER / "phishing_model.pkl"
 SUFFIX_FILE = FOLDER / "public_suffix_list.dat"
 
-# Suspicious words commonly found in phishing URLs
 SUSPICIOUS_WORDS = [
     "login", "verify", "account", "secure", "update",
     "password", "bank", "confirm", "signin", "payment"
 ]
 
-# Load public domain suffixes
 PUBLIC_SUFFIXES = set()
 if SUFFIX_FILE.exists():
     with open(SUFFIX_FILE, "r", encoding="utf-8") as file:
@@ -28,7 +24,7 @@ if SUFFIX_FILE.exists():
 app = Flask(__name__)
 model = None
 
-# Separate the URL into its parts
+
 def get_url_parts(url):
     if "://" not in url:
         url = "http://" + url
@@ -37,16 +33,14 @@ def get_url_parts(url):
     except ValueError:
         return urlsplit("")
 
-# Find the registered domain
+
 def get_group_domain(url):
-    parts = get_url_parts(url)
-    hostname = (parts.hostname or "").lower()
+    hostname = (get_url_parts(url).hostname or "").lower()
     try:
         hostname = hostname.encode("idna").decode("ascii")
     except UnicodeError:
         pass
 
-    # Check whether the hostname is an IP address
     try:
         ipaddress.ip_address(hostname)
         return hostname
@@ -54,21 +48,13 @@ def get_group_domain(url):
         pass
 
     labels = hostname.split(".")
-
-    # Find the registered domain using the suffix list
     for position in range(len(labels)):
-        suffix = ".".join(labels[position:])
-        if suffix in PUBLIC_SUFFIXES:
-            if position == 0:
-                return hostname
-            return ".".join(labels[position - 1:])
+        if ".".join(labels[position:]) in PUBLIC_SUFFIXES:
+            return hostname if position == 0 else ".".join(labels[position - 1:])
 
-    # Use the last two parts if no suffix is found
-    if len(labels) >= 2:
-        return ".".join(labels[-2:])
-    return hostname
+    return ".".join(labels[-2:]) if len(labels) >= 2 else hostname
 
-# Extract 12 features from a URL
+
 def extract_features(url):
     parts = get_url_parts(url)
     hostname = (parts.hostname or "").lower()
@@ -77,20 +63,14 @@ def extract_features(url):
     except UnicodeError:
         pass
 
-    # Check for an IP address
     try:
         ipaddress.ip_address(hostname)
         has_ip = 1
     except ValueError:
         has_ip = 0
 
-    # Count suspicious words
-    suspicious_count = 0
-    for word in SUSPICIOUS_WORDS:
-        if word in url.lower():
-            suspicious_count += 1
+    suspicious_count = sum(word in url.lower() for word in SUSPICIOUS_WORDS)
 
-    # Return the features in dictionary form
     return {
         "length": len(url),
         "hostname_length": len(hostname),
@@ -106,14 +86,14 @@ def extract_features(url):
         "suspicious_words": suspicious_count
     }
 
-# Load the trained model
+
 def load_model():
     global model
     if model is None:
         model = joblib.load(MODEL_FILE)
     return model
 
-# Check whether the submitted URL is valid
+
 def check_url(url):
     if not url:
         return "Please enter a URL."
@@ -134,41 +114,35 @@ def check_url(url):
 
     return None
 
-# Display the website
+
 @app.route("/")
 def home():
     return send_from_directory(FOLDER, "index.html")
 
-# Check whether the model is ready
+
 @app.route("/health")
 def health():
     try:
         load_model()
         return jsonify({"model_loaded": True})
     except Exception:
+        app.logger.exception("Could not load the phishing model.")
         return jsonify({
             "model_loaded": False,
-            "error": "Model not found. Run train_model.py first."
-        })
+            "error": "Model not found or could not be loaded. Run train_model.py first."
+        }), 500
 
-# Receive and analyze a URL
+
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json(silent=True)
-
+    data = request.get_json(silent=True) or {}
     if not isinstance(data, dict):
-        return jsonify({
-            "error": "Send a JSON object containing a URL."
-        }), 400
+        return jsonify({"error": "Invalid request data."}), 400
 
-    url = data.get("url", "")
-    if not isinstance(url, str):
-        return jsonify({"error": "The URL must be text."}), 400
-
-    url = url.strip()
-    error = check_url(url)
-    if error:
-        return jsonify({"error": error}), 400
+    url = str(data.get("url", "")).strip()
+    validation_error = check_url(url)
+    if validation_error:
+        return jsonify({"error": validation_error}), 400
 
     try:
         current_model = load_model()
@@ -177,36 +151,40 @@ def predict():
 
         prediction = current_model.predict([feature_values])[0]
         probabilities = current_model.predict_proba([feature_values])[0]
+        classes = list(current_model.classes_)
 
-        phishing_index = list(current_model.classes_).index(1)
-        score = round(float(probabilities[phishing_index]) * 100, 2)
+        legitimate_score = float(probabilities[classes.index(0)]) * 100
+        phishing_score = float(probabilities[classes.index(1)]) * 100
 
-        if prediction == 1:
-            result = "Potential phishing URL"
-        else:
-            result = "No phishing indicators detected"
+        tree_predictions = [
+            int(tree.predict([feature_values])[0])
+            for tree in current_model.estimators_
+        ]
+        legitimate_votes = tree_predictions.count(0)
+        phishing_votes = tree_predictions.count(1)
+        result = "Potential phishing URL" if prediction == 1 else "No phishing indicators detected"
 
         return jsonify({
             "url": url,
             "is_phishing": bool(prediction),
-            "confidence": score,
-            "features": features,
-            "phishing_score": score,
+            "confidence": round(phishing_score, 2),
+            "phishing_score": round(phishing_score, 2),
+            "legitimate_score": round(legitimate_score, 2),
             "result_label": result,
+            "features": features,
+            "tree_votes": {
+                "legitimate": legitimate_votes,
+                "phishing": phishing_votes,
+                "total": len(tree_predictions)
+            },
             "review_required": False
         })
-
-    except FileNotFoundError:
-        return jsonify({
-            "error": "Model not found. Run train_model.py first."
-        }), 503
-
     except Exception:
-        app.logger.exception("URL analysis failed")
+        app.logger.exception("An error occurred during URL prediction.")
         return jsonify({
-            "error": "The URL could not be analyzed."
+            "error": "An error occurred while analyzing the URL. Check the Flask terminal."
         }), 500
 
-# Start the Flask server
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5001, debug=False)

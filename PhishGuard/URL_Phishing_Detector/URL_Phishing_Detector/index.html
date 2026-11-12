@@ -1,106 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Phishing URL Checker</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f3f6fb; color: #1d2939; margin: 0; padding: 40px 16px; }
-    main { max-width: 620px; margin: auto; background: white; padding: 28px; border-radius: 14px; box-shadow: 0 4px 18px #172b4d12; }
-    h1 { margin: 0 0 8px; color: #174ea6; }
-    p { color: #667085; line-height: 1.5; }
-    form { display: flex; gap: 8px; margin-top: 24px; }
-    input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-size: 15px; }
-    button { padding: 12px 18px; border: 0; border-radius: 7px; background: #1769d2; color: white; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
-    #status, #result { margin-top: 18px; }
-    #result { padding: 16px; border-radius: 8px; background: #f3f6fb; overflow-wrap: anywhere; }
-    #result.safe { background: #e9f8ef; color: #166534; }
-    #result.danger { background: #fff0f0; color: #b42318; }
-    #result.review { background: #fff7e5; color: #8a5a00; }
-    .score { font-size: 24px; font-weight: bold; }
-    small { display: block; margin-top: 22px; color: #667085; }
-    @media (max-width: 500px) { form { flex-direction: column; } button { width: 100%; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Machine Learning Based Phishing Detector</title>
+    <style>
+* { box-sizing: border-box; }
+body { font-family: Inter, Arial, sans-serif; background: #f4f7fb; color: #172033; margin: 0; padding: 35px 18px; }
+main { max-width: 900px; margin: auto; }
+.header { margin-bottom: 28px; }
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.logo { width: 46px; height: 46px; background: #174ea6; color: white; border-radius: 12px; display: grid; place-items: center; font-size: 24px; font-weight: bold; }
+.brand-name { font-weight: bold; font-size: 17px; }
+.brand-subtitle { color: #667085; font-size: 12px; margin-top: 3px; }
+.header h1 { font-size: clamp(26px, 4vw, 36px); margin: 0 0 10px; letter-spacing: -1px; }
+.header p { color: #667085; line-height: 1.6; max-width: 650px; }
+.status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 20px; background: #e8f7ee; color: #167044; font-size: 13px; margin-top: 10px; }
+.status.offline { background: #fff0f0; color: #b42318; }
+.scanner { background: white; padding: 26px; border: 1px solid #e5eaf2; border-radius: 18px; box-shadow: 0 8px 30px #172b4d08; }
+.scanner h2 { margin: 0 0 8px; font-size: 20px; }
+.scanner p { color: #667085; font-size: 14px; line-height: 1.6; }
+form { display: flex; gap: 10px; margin-top: 22px; }
+input { flex: 1; min-width: 0; padding: 15px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 15px; outline: none; }
+input:focus { border-color: #1769d2; box-shadow: 0 0 0 3px #1769d21a; }
+button { padding: 15px 22px; background: #1769d2; color: white; border: 0; border-radius: 10px; font-weight: bold; cursor: pointer; }
+button:hover { background: #1258b4; }
+button:disabled { opacity: .6; cursor: wait; }
+.hint { font-size: 12px !important; margin-top: 12px; }
+#result { margin-top: 24px; }
+.result-card { background: white; border: 1px solid #e5eaf2; border-radius: 18px; padding: 24px; margin-bottom: 18px; overflow-wrap: anywhere; }
+.result-card.safe { border-top: 4px solid #16a34a; }
+.result-card.danger { border-top: 4px solid #dc2626; }
+.result-card.review { border-top: 4px solid #d97706; }
+.result-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.result-heading h2 { margin: 0; font-size: 22px; }
+.badge { padding: 7px 12px; border-radius: 20px; background: #e8f7ee; color: #167044; font-size: 12px; font-weight: bold; }
+.danger .badge { background: #fee2e2; color: #b42318; }
+.review .badge { background: #fef3c7; color: #92400e; }
+.checked-url { color: #667085; font-size: 14px; margin: 14px 0 22px; }
+.score-panel { background: #f8fafc; padding: 20px; border-radius: 14px; }
+.score-label { color: #667085; font-size: 14px; }
+.score-number { font-size: 34px; font-weight: bold; margin: 8px 0; letter-spacing: -1px; }
+.score-bar { height: 12px; background: #e2e8f0; border-radius: 20px; overflow: hidden; margin: 14px 0 8px; }
+.score-fill { height: 100%; width: 0%; background: #16a34a; border-radius: 20px; transition: width .5s ease; }
+.danger .score-fill { background: #dc2626; }
+.review .score-fill { background: #d97706; }
+.bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: #667085; }
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 18px; }
+.metric { background: #f8fafc; border: 1px solid #edf0f5; border-radius: 12px; padding: 16px; }
+.metric-label { color: #667085; font-size: 13px; }
+.metric-value { font-size: 24px; font-weight: bold; margin-top: 8px; }
+.green { color: #15803d; }
+.red { color: #b42318; }
+.section-title { margin: 0 0 16px; font-size: 18px; }
+.details { background: white; border: 1px solid #e5eaf2; border-radius: 16px; margin-bottom: 18px; overflow: hidden; }
+details summary { padding: 20px; cursor: pointer; font-weight: bold; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+details summary::after { content: "+"; color: #1769d2; font-size: 20px; }
+details[open] summary::after { content: "−"; }
+.details-content { padding: 0 20px 20px; }
+.vote-row { margin-bottom: 18px; }
+.vote-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+.vote-bar { height: 9px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
+.vote-fill { height: 100%; border-radius: 20px; }
+.vote-legitimate { background: #16a34a; }
+.vote-phishing { background: #dc2626; }
+.explanation { background: #eff6ff; border: 1px solid #dbeafe; padding: 14px; border-radius: 10px; font-size: 13px; color: #1e40af; line-height: 1.6; }
+.feature-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.feature-table th, .feature-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #edf0f5; }
+.feature-table th { color: #667085; font-weight: normal; }
+.feature-table td:last-child { text-align: right; font-weight: bold; font-family: monospace; }
+.feature-table tr:last-child td { border-bottom: 0; }
+.error { background: #fff0f0; color: #b42318; padding: 16px; border-radius: 12px; }
+footer { text-align: center; color: #667085; font-size: 12px; line-height: 1.7; margin-top: 28px; }
+@media (max-width: 600px) {
+body { padding: 22px 12px; }
+.scanner, .result-card { padding: 18px; }
+form { flex-direction: column; }
+button { width: 100%; }
+.cards { grid-template-columns: 1fr; }
+.score-number { font-size: 29px; }
+}
+    </style>
 </head>
 <body>
-  <main>
-    <h1>Phishing URL Checker</h1>
-    <p>Enter a website address to check whether its URL has patterns commonly found in phishing links.</p>
-
-    <form id="urlForm">
-      <input id="urlInput" type="text" placeholder="https://example.com" required>
-      <button id="checkButton" type="submit">Check URL</button>
-    </form>
-
-    <p id="status">Checking the detector...</p>
-    <div id="result" hidden></div>
-    <small>This tool checks URL patterns only. A low score does not guarantee that a website is safe.</small>
-  </main>
-
-  <script>
+<main>
+    <header class="header">
+        <div class="brand">
+            <div class="logo">P</div>
+            <div>
+                <div class="brand-name">PhishGuard</div>
+                <div class="brand-subtitle">Machine Learning Based Phishing Detector</div>
+            </div>
+        </div>
+        <h1>Analyze a suspicious URL</h1>
+        <p>
+            Enter a website address to analyze its URL characteristics
+            using a trained Random Forest machine learning model.
+        </p>
+        <div id="status" class="status">
+            Checking detector...
+        </div>
+    </header>
+    <section class="scanner">
+        <h2>URL Scanner</h2>
+        <p>Enter the complete website address you want to analyze.</p>
+        <form id="urlForm">
+            <input
+                id="urlInput"
+                type="text"
+                placeholder="https://example.com"
+                autocomplete="off"
+                required
+            >
+            <button id="checkButton" type="submit">Analyze URL</button>
+        </form>
+        <p class="hint">
+            Example: https://example.com
+        </p>
+    </section>
+    <section id="result" hidden></section>
+    <footer>
+        Machine Learning Based Phishing Detector<br>
+        Powered by Python, Flask, and Random Forest<br>
+        This tool analyzes URL patterns only. A low phishing score
+        does not guarantee that a website is safe.
+    </footer>
+</main>
+<script>
     const form = document.getElementById("urlForm");
     const input = document.getElementById("urlInput");
     const button = document.getElementById("checkButton");
     const statusText = document.getElementById("status");
     const result = document.getElementById("result");
-
-    async function checkServer() {
-      try {
-        const response = await fetch("/health");
-        const data = await response.json();
-        statusText.textContent = data.model_loaded ? "Detector is ready." : data.error;
-      } catch (error) {
-        statusText.textContent = "Cannot connect. Start app.py first.";
-      }
-    }
-
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      const url = input.value.trim();
-      result.hidden = true;
-      button.disabled = true;
-      button.textContent = "Checking...";
-
-      try {
-        const response = await fetch("/predict", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: url })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-
-        result.hidden = false;
-        if (data.is_phishing) {
-          result.className = "danger";
-        } else if (data.review_required) {
-          result.className = "review";
-        } else {
-          result.className = "safe";
+    const featureNames = {
+        length: "URL Length",
+        hostname_length: "Hostname Length",
+        dots: "Hostname Dots",
+        hyphens: "Hostname Hyphens",
+        slashes: "Path Slashes",
+        query_parameters: "Query Parameters",
+        https: "HTTPS",
+        digits: "Digits",
+        has_ip: "IP Address",
+        at_sign: "At Sign",
+        punycode: "Punycode",
+        suspicious_words: "Suspicious Words"
+    };
+    function createElement(tag, className, text) {
+        const element = document.createElement(tag);
+        if (className) {
+            element.className = className;
         }
-        const title = document.createElement("strong");
-        title.textContent = data.result_label;
-
-        const checkedUrl = document.createElement("p");
-        checkedUrl.textContent = "URL: " + data.url;
-
-        const score = document.createElement("p");
-        score.className = "score";
-        score.textContent = "Phishing score: " + data.phishing_score + "%";
-
-        result.replaceChildren(title, checkedUrl, score);
-      } catch (error) {
+        if (text !== undefined) {
+            element.textContent = text;
+        }
+        return element;
+    }
+    function createMetric(label, value, color) {
+        const card = createElement("div", "metric");
+        card.append(
+            createElement("div", "metric-label", label),
+            createElement("div", "metric-value " + color, value)
+        );
+        return card;
+    }
+    function createVoteBar(label, votes, total, color) {
+        const row = createElement("div", "vote-row");
+        const labelRow = createElement("div", "vote-label");
+        labelRow.append(
+            createElement("span", "", label),
+            createElement("strong", "", votes + " trees")
+        );
+        const bar = createElement("div", "vote-bar");
+        const fill = createElement("div", "vote-fill " + color);
+        fill.style.width = total > 0 ? (votes / total * 100) + "%" : "0%";
+        bar.append(fill);
+        row.append(labelRow, bar);
+        return row;
+    }
+    async function checkServer() {
+        try {
+            const response = await fetch("/health");
+            const data = await response.json();
+            statusText.textContent = data.model_loaded
+                ? "● Detector is ready"
+                : "● " + data.error;
+            statusText.className = data.model_loaded
+                ? "status"
+                : "status offline";
+        } catch (error) {
+            statusText.textContent = "● Cannot connect to detector";
+            statusText.className = "status offline";
+        }
+    }
+    function displayResult(data) {
+        result.replaceChildren();
         result.hidden = false;
-        result.className = "danger";
-        result.textContent = error.message || "Something went wrong.";
-      }
-
-      button.disabled = false;
-      button.textContent = "Check URL";
+        const card = createElement("div", "result-card");
+        if (data.is_phishing) {
+            card.classList.add("danger");
+        } else if (data.review_required) {
+            card.classList.add("review");
+        } else {
+            card.classList.add("safe");
+        }
+        const heading = createElement("div", "result-heading");
+        heading.append(
+            createElement("h2", "", data.result_label),
+            createElement("span", "badge", "Analysis Complete")
+        );
+        const checkedUrl = createElement(
+            "p",
+            "checked-url",
+            "Analyzed URL: " + data.url
+        );
+        const scorePanel = createElement("div", "score-panel");
+        scorePanel.append(
+            createElement("div", "score-label", "Phishing Score"),
+            createElement(
+                "div",
+                "score-number",
+                data.phishing_score.toFixed(2) + "%"
+            )
+        );
+        const scoreBar = createElement("div", "score-bar");
+        const scoreFill = createElement("div", "score-fill");
+        scoreFill.style.width = data.phishing_score + "%";
+        scoreBar.append(scoreFill);
+        const barLabels = createElement("div", "bar-labels");
+        barLabels.append(
+            createElement("span", "", "0% Phishing"),
+            createElement("span", "", "100% Phishing")
+        );
+        scorePanel.append(scoreBar, barLabels);
+        const metrics = createElement("div", "cards");
+        metrics.append(
+            createMetric(
+                "Legitimate Probability",
+                data.legitimate_score.toFixed(2) + "%",
+                "green"
+            ),
+            createMetric(
+                "Phishing Probability",
+                data.phishing_score.toFixed(2) + "%",
+                "red"
+            )
+        );
+        card.append(heading, checkedUrl, scorePanel, metrics);
+        result.append(card);
+        // Display the Random Forest voting information
+        const votes = data.tree_votes;
+        if (votes) {
+            const details = createElement("details", "details");
+            const summary = createElement(
+                "summary",
+                "",
+                "Random Forest Computation"
+            );
+            const content = createElement("div", "details-content");
+            content.append(
+                createVoteBar(
+                    "Legitimate",
+                    votes.legitimate,
+                    votes.total,
+                    "vote-legitimate"
+                ),
+                createVoteBar(
+                    "Phishing",
+                    votes.phishing,
+                    votes.total,
+                    "vote-phishing"
+                ),
+                createElement(
+                    "div",
+                    "explanation",
+                    "The model uses " + votes.total +
+                    " decision trees. Each tree contributes to the final " +
+                    "prediction. The phishing score is the average of the " +
+                    "trees' phishing probability estimates, not simply " +
+                    "the percentage of trees voting phishing."
+                )
+            );
+            details.append(summary, content);
+            result.append(details);
+        }
+        // Display the extracted URL features
+        if (data.features) {
+            const details = createElement("details", "details");
+            const summary = createElement(
+                "summary",
+                "",
+                "View Extracted URL Features"
+            );
+            const content = createElement("div", "details-content");
+            const table = createElement("table", "feature-table");
+            const header = createElement("tr");
+            header.append(
+                createElement("th", "", "Feature"),
+                createElement("th", "", "Value")
+            );
+            table.append(header);
+            for (const [key, value] of Object.entries(data.features)) {
+                const row = createElement("tr");
+                row.append(
+                    createElement("td", "", featureNames[key] || key),
+                    createElement("td", "", String(value))
+                );
+                table.append(row);
+            }
+            content.append(table);
+            details.append(summary, content);
+            result.append(details);
+        }
+    }
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const url = input.value.trim();
+        result.hidden = true;
+        button.disabled = true;
+        button.textContent = "Analyzing...";
+        try {
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ url: url })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "URL analysis failed.");
+            }
+            displayResult(data);
+        } catch (error) {
+            result.hidden = false;
+            result.replaceChildren(
+                createElement(
+                    "div",
+                    "error",
+                    error.message || "Something went wrong."
+                )
+            );
+        } finally {
+            button.disabled = false;
+            button.textContent = "Analyze URL";
+        }
     });
-
     checkServer();
-  </script>
+</script>
 </body>
 </html>
